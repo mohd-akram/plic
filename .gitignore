@@ -1,0 +1,9 @@
+/docs/
+/lib/
+/bin/
+/.shards/
+*.dwarf
+
+/data.db
+/etc/nginx/site.conf
+/etc/rc.d/service

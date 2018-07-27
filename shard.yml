@@ -1,0 +1,19 @@
+name: plic
+version: 0.1.0
+
+authors:
+  - Mohamed Akram <mohd.akram@outlook.com>
+
+targets:
+  plic:
+    main: src/plic.cr
+
+crystal: 0.25.1
+
+license: MIT
+
+dependencies:
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+    version: 0.10.0
+    commit: 215244174952ce709e4ca04c881564efe0e2e25a

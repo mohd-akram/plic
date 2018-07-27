@@ -1,0 +1,11 @@
+root = true
+
+[{/*,src/**}]
+charset = utf-8
+tab_width = 8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cr]
+indent_style = space
+indent_size = 2
