@@ -21,8 +21,9 @@ nginx_confsubdir = $(sysconfdir)/nginx/conf.d
 
 nginx_conf = etc/nginx/site.conf
 rcd = etc/rc.d/service
+job = etc/periodic/daily/job
 
-all: bin/plic $(nginx_conf) $(rcd)
+all: bin/plic $(nginx_conf) $(rcd) $(job)
 
 bin/plic: src/plic.cr
 	shards build --release --no-debug
@@ -35,6 +36,10 @@ $(rcd): $(rcd).m4
 	m4 -DNAME=$(name) -DCOMMAND=$(service_command) \
 		-DARGS="$(service_args)" $(rcd).m4 > $@
 
+$(job): $(job).m4
+	m4 -DDB=$(pkgdbdir)/data.db $(job).m4 > $@
+	chmod +x $@
+
 install: all
 	install -d $(DESTDIR)$(sbindir)
 	install -s bin/plic $(DESTDIR)$(sbindir)
@@ -46,3 +51,5 @@ install-freebsd:
 	$(MAKE) localstatedir=/var install
 	install -d $(DESTDIR)$(sysconfdir)/rc.d
 	install $(rcd) $(DESTDIR)$(sysconfdir)/rc.d/$(name)
+	install -d $(DESTDIR)$(sysconfdir)/periodic/daily
+	install $(job) $(DESTDIR)$(sysconfdir)/periodic/daily/000.$(name)

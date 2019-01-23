@@ -26,5 +26,6 @@ long which can be easily reviewed.
 ### Server
 
 Strict security headers (including CSP and HSTS) are set on all requests. No
-data is stored other than the encrypted blob and the ID (which is extracted
-from the blob). No logs are kept on the server.
+data is stored other than the encrypted blob, the ID (extracted from the blob)
+and the creation time (used to delete unopened messages after 30 days). No logs
+are kept on the server.

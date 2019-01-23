@@ -391,8 +391,11 @@ end
 DB.open db_url do |db|
   begin
     db.exec (
-      "create table envelopes (id text primary key, data blob not null) " \
-      "without rowid"
+      "create table envelopes (" \
+      "  id text primary key," \
+      "  data blob not null," \
+      "  created timestamp default current_timestamp" \
+      ") without rowid"
     )
   rescue ex : SQLite3::Exception
   end

@@ -7,3 +7,4 @@
 /data.db
 /etc/nginx/site.conf
 /etc/rc.d/service
+/etc/periodic/daily/job
