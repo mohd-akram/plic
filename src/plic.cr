@@ -229,7 +229,7 @@ async function main() {
     messageElement.readOnly = true;
     messageElement.value = location.href;
     form.querySelector('label[for=message]').innerText = 'Link';
-    form.querySelector('input[type=submit]').value = 'Get And Delete Message';
+    form.querySelector('input[type=submit]').value = 'Get and Delete Message';
     form.addEventListener('submit', onGetMessage);
   }
 }
