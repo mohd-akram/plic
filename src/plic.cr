@@ -184,6 +184,7 @@ async function onGetMessage(event) {
     if (response.ok) {
       rawEnvelope = await response.arrayBuffer();
       messageElement.dataset.envelope = b64encode(rawEnvelope);
+      window.onbeforeunload = event => event.preventDefault();
     }
   }
 
@@ -197,18 +198,19 @@ async function onGetMessage(event) {
       try {
         key = await importKey(b64decode(location.hash.slice(1)));
       } catch (e) {
-        return alert('Wrong secret key');
+        return alert('Invalid secret key');
       }
     }
     let message;
     try {
       message = await decryptRawEnvelope(rawEnvelope, key);
     } catch (e) {
-      return alert('Wrong password or key');
+      return alert(password ? 'Wrong password' : 'Wrong secret key');
     }
     messageElement.value = message;
     form.querySelector('label[for=message]').innerText = 'Message';
     disableInteraction(form);
+    window.onbeforeunload = () => {};
   } else {
     alert('Error: Message not found');
   }
@@ -229,6 +231,10 @@ async function main() {
     messageElement.readOnly = true;
     messageElement.value = location.href;
     form.querySelector('label[for=message]').innerText = 'Link';
+    if (!location.hash.slice(1)) {
+      form.querySelector('label[for=password]').innerText = 'Password';
+      form.elements.namedItem('password').required = true;
+    }
     form.querySelector('input[type=submit]').value = 'Get and Delete Message';
     form.addEventListener('submit', onGetMessage);
   }
