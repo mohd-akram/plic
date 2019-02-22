@@ -183,8 +183,13 @@ async function onGetMessage(event) {
     const response = await fetch('', { method: 'DELETE' });
     if (response.ok) {
       rawEnvelope = await response.arrayBuffer();
-      messageElement.dataset.envelope = b64encode(rawEnvelope);
-      window.onbeforeunload = event => event.preventDefault();
+      const id = b64encode(rawEnvelope.slice(-TAG_LENGTH));
+      if (id == location.pathname.slice(1)) {
+        messageElement.dataset.envelope = b64encode(rawEnvelope);
+        window.onbeforeunload = event => event.preventDefault();
+      } else {
+        rawEnvelope = null;
+      }
     }
   }
 
