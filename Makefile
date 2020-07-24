@@ -2,7 +2,7 @@
 
 SITE = plic.ml
 PORT = 8080
-ACMEDIR = /usr/local/www/acme
+ACMEDIR = /usr/local/www/acme/.well-known/acme-challenge
 
 name = plic
 version = `git describe --tags | cut -c 2- | cut -f -2 -d - | sed 's/-/./'`
