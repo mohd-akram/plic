@@ -24,7 +24,7 @@ end
 def hash(string)
   hash = OpenSSL::Digest.new "SHA256"
   hash.update string
-  Base64.strict_encode hash.digest
+  Base64.strict_encode hash.final
 end
 
 def not_found(context)
@@ -303,7 +303,7 @@ HTML
 port = 8080
 db_path = "data.db"
 
-OptionParser.parse! do |parser|
+OptionParser.parse do |parser|
   parser.banner = "usage: plic [options]"
   parser.on("--port port", "Server port") { |p| port = p.to_i }
   parser.on("--db path", "SQLite database file path") do |path|
