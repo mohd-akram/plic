@@ -8,12 +8,12 @@ targets:
   plic:
     main: src/plic.cr
 
-crystal: 0.35.1
+crystal: 0.36.1
 
 license: MIT
 
 dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: 0.16.0
-    commit: 5f6055f4bd24c7ba24ea020829b61f06f66a6989
+    version: 0.18.0
+    commit: 367c11031d38aeae045f8eaabeae84fde33071ff
