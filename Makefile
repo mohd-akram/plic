@@ -44,7 +44,7 @@ install: all
 	install -d $(DESTDIR)$(sbindir)
 	install -s bin/plic $(DESTDIR)$(sbindir)
 	install -d $(DESTDIR)$(nginx_confsubdir)
-	install $(nginx_conf) $(DESTDIR)$(nginx_confsubdir)/$(SITE).conf
+	install -m 644 $(nginx_conf) $(DESTDIR)$(nginx_confsubdir)/$(SITE).conf
 	install -d $(DESTDIR)$(pkgdbdir)
 
 install-freebsd:
