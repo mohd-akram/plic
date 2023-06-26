@@ -1,6 +1,6 @@
 .POSIX:
 
-SITE = plic.ml
+SITE = plic.cc
 PORT = 8080
 ACMEDIR = /usr/local/www/acme/.well-known/acme-challenge
 
