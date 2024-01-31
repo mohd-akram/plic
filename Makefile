@@ -5,7 +5,7 @@ PORT = 8080
 ACMEDIR = /usr/local/www/acme/.well-known/acme-challenge
 
 name = plic
-version = `git describe --tags | cut -c 2- | cut -f -2 -d - | sed 's/-/./'`
+version = `git describe --tags | cut -c 2- | cut -f -2 -d - | tr - .`
 license = MIT
 homepage = https://$(SITE)
 dependencies = nginx sqlite3
