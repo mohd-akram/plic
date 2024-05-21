@@ -354,7 +354,7 @@ server = HTTP::Server.new do |context|
         case part.name
         when "data"
           body = Bytes.new 1024
-          size = part.body.read body
+          size = IO.copy part.body, IO::Memory.new(body), body.size
           if part.body.read_byte.nil?
             data = body[0, size]
             tag = data[size - 16, 16]
