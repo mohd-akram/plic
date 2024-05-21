@@ -222,7 +222,7 @@ async function onGetMessage(event) {
 }
 
 function disableInteraction(form) {
-  form.elements.namedItem('message').readonly = true;
+  form.elements.namedItem('message').readOnly = true;
   form.querySelector('[type=submit]').disabled = true;
 }
 
