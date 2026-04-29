@@ -59,16 +59,11 @@ js = script <<-'JS'
 
 /* Helpers */
 function b64encode(b) {
-  return btoa(String.fromCharCode(...new Uint8Array(b)))
-    .replace(/={1,2}$/, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
+  return b.toBase64({ alphabet: 'base64url', omitPadding: true });
 }
 
 function b64decode(s) {
-  return Uint8Array.from(
-    atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)
-  ).buffer;
+  return Uint8Array.fromBase64(s, { alphabet: 'base64url' });
 }
 
 /* Crypto */
@@ -112,18 +107,20 @@ async function createEnvelope(message, password = null) {
   }
 
   const iv = window.crypto.getRandomValues(new Uint8Array(IV_LENGTH));
-  const ciphertext = await window.crypto.subtle.encrypt(
+  const ciphertext = new Uint8Array(await window.crypto.subtle.encrypt(
     Object.assign({ iv }, KEY_ALGORITHM), key, rawMessage
-  );
+  ));
 
   const data = password ?
     new Blob([salt, iv, ciphertext]) :
     new Blob([iv, ciphertext]);
 
-  const id = b64encode(ciphertext.slice(-TAG_LENGTH));
+  const id = b64encode(ciphertext.subarray(-TAG_LENGTH));
   let url = `${window.location.origin}/${id}`;
   if (!password) {
-    const rawKey = await window.crypto.subtle.exportKey('raw', key);
+    const rawKey = new Uint8Array(
+      await window.crypto.subtle.exportKey('raw', key)
+    );
     url += `#${b64encode(rawKey)}`;
   }
 
@@ -131,8 +128,8 @@ async function createEnvelope(message, password = null) {
 }
 
 async function decryptRawEnvelope(rawEnvelope, key) {
-  const iv = rawEnvelope.slice(0, IV_LENGTH);
-  const ciphertext = rawEnvelope.slice(IV_LENGTH);
+  const iv = rawEnvelope.subarray(0, IV_LENGTH);
+  const ciphertext = rawEnvelope.subarray(IV_LENGTH);
   const rawMessage = await window.crypto.subtle.decrypt(
     Object.assign({ iv }, KEY_ALGORITHM), key, ciphertext
   );
@@ -182,8 +179,8 @@ async function onGetMessage(event) {
   } else {
     const response = await fetch('', { method: 'DELETE' });
     if (response.ok) {
-      rawEnvelope = await response.arrayBuffer();
-      const id = b64encode(rawEnvelope.slice(-TAG_LENGTH));
+      rawEnvelope = new Uint8Array(await response.arrayBuffer());
+      const id = b64encode(rawEnvelope.subarray(-TAG_LENGTH));
       if (id == location.pathname.slice(1)) {
         messageElement.dataset.envelope = b64encode(rawEnvelope);
         window.onbeforeunload = event => event.preventDefault();
@@ -196,8 +193,8 @@ async function onGetMessage(event) {
   if (rawEnvelope) {
     let key;
     if (password) {
-      const salt = rawEnvelope.slice(0, SALT_LENGTH);
-      rawEnvelope = rawEnvelope.slice(SALT_LENGTH);
+      const salt = rawEnvelope.subarray(0, SALT_LENGTH);
+      rawEnvelope = rawEnvelope.subarray(SALT_LENGTH);
       key = await deriveKey(password, salt, 'decrypt');
     } else {
       try {
@@ -354,7 +351,7 @@ server = HTTP::Server.new do |context|
         case part.name
         when "data"
           body = Bytes.new 1024
-          size = IO.copy part.body, IO::Memory.new(body), body.size
+          size = part.body.read_greedy body
           if part.body.read_byte.nil?
             data = body[0, size]
             tag = data[size - 16, 16]
