@@ -17,7 +17,7 @@ Security
 ### Client
 
 WebCrypto is used for all cryptographic operations in the browser. Messages are
-encrypted using AES-128-GCM and the authentication tag is used as a unique ID.
+encrypted using AES-128-GCM and a truncated SHA-256 hash is used as a unique ID.
 When using a password, the secret key is derived using PBKDF2-HMAC-SHA256 with
 100000 iterations. No external resources (such as scripts, styles and links)
 are used. The webpage is loaded in a single request and is less than 250 lines
