@@ -390,10 +390,9 @@ server = HTTP::Server.new do |context|
       DB.open db_url do |db|
         begin
           data = db.query_one \
-            "select data from envelopes where id = ?", id, &.read(Bytes)
+            "delete from envelopes where id = ? returning data", id,
+              &.read(Bytes)
         rescue ex : DB::Error
-        else
-          db.exec "delete from envelopes where id = ?", id
         end
       end
       if data
