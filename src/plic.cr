@@ -165,7 +165,13 @@ async function onGetLink(event) {
   if (response.ok) {
     messageElement.value = envelope.url;
     messageElement.select();
-    form.querySelector('label[for=message]').innerText = 'Link';
+    const labelElement = form.querySelector('label[for=message]');
+    try {
+      await navigator.clipboard.writeText(envelope.url);
+      labelElement.innerText = 'Link (copied to clipboard)';
+    } catch {
+      labelElement.innerText = 'Link';
+    }
     disableInteraction(form);
   } else {
     alert('Error: Could not save message');
