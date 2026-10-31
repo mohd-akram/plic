@@ -278,7 +278,7 @@ html = <<-HTML
             maxlength="980" required></textarea>
         </p>
         <label for="password">Password (optional)</label>
-        <input id="password" type="password" minlength="8">
+        <input id="password" type="password" minlength="12">
         <br><br>
         <input type="submit" value="Get Link">
       </form>
