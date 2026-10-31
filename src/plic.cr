@@ -72,7 +72,7 @@ function b64decode(s) {
 const KEY_ALGORITHM = { name: 'AES-GCM', length: 128 };
 const IV_LENGTH = 12;
 
-const KDF_ALGORITHM = { name: 'PBKDF2', hash: 'SHA-256', iterations: 1e5 };
+const KDF_ALGORITHM = { name: 'PBKDF2', hash: 'SHA-256', iterations: 6e5 };
 const SALT_LENGTH = 16;
 
 const HASH_ALGORITHM = 'SHA-256';
