@@ -1,4 +1,6 @@
+require "base64"
 require "http/server"
+require "openssl"
 require "option_parser"
 
 require "sqlite3"
@@ -168,9 +170,9 @@ async function onGetLink(event) {
     const labelElement = form.querySelector('label[for=message]');
     try {
       await navigator.clipboard.writeText(envelope.url);
-      labelElement.innerText = 'Link (copied to clipboard)';
+      labelElement.textContent = 'Link (copied to clipboard)';
     } catch {
-      labelElement.innerText = 'Link';
+      labelElement.textContent = 'Link';
     }
     disableInteraction(form);
   } else {
@@ -227,7 +229,7 @@ async function onGetMessage(event) {
       return alert(password ? 'Wrong password' : 'Wrong secret key');
     }
     messageElement.value = message;
-    form.querySelector('label[for=message]').innerText = 'Message';
+    form.querySelector('label[for=message]').textContent = 'Message';
     disableInteraction(form);
     window.onbeforeunload = () => {};
   } else {
@@ -249,9 +251,9 @@ async function main() {
     const messageElement = form.elements.namedItem('message');
     messageElement.readOnly = true;
     messageElement.value = location.href;
-    form.querySelector('label[for=message]').innerText = 'Link';
+    form.querySelector('label[for=message]').textContent = 'Link';
     if (!location.hash.slice(1)) {
-      form.querySelector('label[for=password]').innerText = 'Password';
+      form.querySelector('label[for=password]').textContent = 'Password';
       form.elements.namedItem('password').required = true;
     }
     form.querySelector('input[type=submit]').value = 'Get and Delete Message';
@@ -324,7 +326,7 @@ OptionParser.parse do |parser|
   parser.on("--db path", "SQLite database file path") do |path|
     db_path = path
   end
-  parser.on("-h", "--help", "Show this help") { puts parser }
+  parser.on("-h", "--help", "Show this help") { puts parser; exit }
   parser.invalid_option do |option|
     STDERR.puts "plic: unrecognized option '#{option}'"
     STDERR.puts parser
@@ -346,15 +348,15 @@ csp = "base-uri 'none'; " \
 server = HTTP::Server.new do |context|
   path = context.request.path
 
-  if !/^\/[A-Za-z0-9-_]*$/.match(path)
+  unless /^\/[A-Za-z0-9_-]*$/.matches?(path)
     not_found context
     next
   end
 
   case context.request.method
   when "GET"
-    if path != "/"
-      context.response.headers["X-Robots-Tag"] = "noindex"
+    unless path == "/"
+      context.response.headers["X-Robots-Tag"] = "none"
     end
     context.response.headers["Content-Security-Policy"] = csp
     context.response.headers["Referrer-Policy"] = "no-referrer"
@@ -375,6 +377,10 @@ server = HTTP::Server.new do |context|
             digest = OpenSSL::Digest.new("SHA256")
             digest.update data
             id = Base64.urlsafe_encode digest.final[0, 16], padding: false
+          else
+            context.response.status_code = 413
+            context.response.print "Content Too Large"
+            next
           end
         end
       end
@@ -415,16 +421,13 @@ server = HTTP::Server.new do |context|
 end
 
 DB.open db_url do |db|
-  begin
-    db.exec (
-      "create table envelopes (" \
-      "  id text primary key," \
-      "  data blob not null," \
-      "  created timestamp default current_timestamp" \
-      ") without rowid"
-    )
-  rescue ex : SQLite3::Exception
-  end
+  db.exec (
+    "create table if not exists envelopes (" \
+    "  id text primary key," \
+    "  data blob not null," \
+    "  created timestamp default current_timestamp" \
+    ") without rowid"
+  )
 end
 
 server.bind_tcp port
