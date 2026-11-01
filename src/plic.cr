@@ -269,10 +269,12 @@ html = <<-HTML
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="initial-scale=1">
     <title>plic</title>
     <meta name="description"
       content="Send one-time secret messages securely with plic.">
-    <meta name="viewport" content="initial-scale=1">
     <style>#{css}</style>
     <script>#{js}</script>
   </head>
