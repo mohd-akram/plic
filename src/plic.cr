@@ -7,7 +7,7 @@ require "sqlite3"
 
 def indent(string, space)
   string.each_line do |line|
-    yield space
+    yield space unless line.empty?
     yield line
     yield '\n'
   end
@@ -148,14 +148,12 @@ async function decryptRawEnvelope(rawEnvelope, key) {
 }
 
 /* Event Listeners */
-async function onGetLink(event) {
-  event.preventDefault();
-
-  const form = event.currentTarget;
+async function onGetLink(form) {
   const messageElement = form.elements.namedItem('message');
+  const passwordElement = form.elements.namedItem('password');
 
   const message = messageElement.value;
-  const password = form.elements.namedItem('password').value;
+  const password = passwordElement.value;
 
   const envelope = await createEnvelope(message, password);
 
@@ -166,6 +164,7 @@ async function onGetLink(event) {
 
   if (response.ok) {
     messageElement.value = envelope.url;
+    messageElement.readOnly = true;
     messageElement.select();
     const labelElement = form.querySelector('label[for=message]');
     try {
@@ -174,20 +173,18 @@ async function onGetLink(event) {
     } catch {
       labelElement.textContent = 'Link';
     }
-    disableInteraction(form);
+    passwordElement.disabled = true;
   } else {
-    alert('Error: Could not save message');
+    throw 'Could not save message';
   }
 }
 
-async function onGetMessage(event) {
-  event.preventDefault();
-
-  const form = event.currentTarget;
+async function onGetMessage(form) {
   const messageElement = form.elements.namedItem('message');
-  const password = form.elements.namedItem('password').value;
+  const passwordElement = form.elements.namedItem('password');
 
   const encodedEnvelope = messageElement.dataset.envelope;
+  const password = passwordElement.value;
 
   let rawEnvelope;
   if (encodedEnvelope) {
@@ -218,35 +215,45 @@ async function onGetMessage(event) {
     } else {
       try {
         key = await importKey(b64decode(location.hash.slice(1)));
-      } catch (e) {
-        return alert('Invalid secret key');
+      } catch {
+        throw 'Invalid secret key';
       }
     }
     let message;
     try {
       message = await decryptRawEnvelope(rawEnvelope, key);
-    } catch (e) {
-      return alert(password ? 'Wrong password' : 'Wrong secret key');
+    } catch {
+      throw password ? 'Wrong password' : 'Wrong secret key';
     }
     messageElement.value = message;
     form.querySelector('label[for=message]').textContent = 'Message';
-    disableInteraction(form);
-    window.onbeforeunload = () => {};
+    passwordElement.disabled = true;
+    window.onbeforeunload = null;
   } else {
-    alert('Error: Message not found');
+    throw 'Message not found';
   }
 }
 
-function disableInteraction(form) {
-  form.elements.namedItem('message').readOnly = true;
-  form.querySelector('[type=submit]').disabled = true;
+function addSubmitListener(form, handler) {
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submitButton = form.querySelector('[type=submit]');
+    submitButton.disabled = true;
+    try {
+      await handler(form);
+    } catch (err) {
+      submitButton.disabled = false;
+      if (typeof err == 'string') alert(err);
+      else throw err;
+    }
+  });
 }
 
 async function main() {
   const form = document.forms.namedItem('letter');
 
   if (location.pathname == '/') {
-    form.addEventListener('submit', onGetLink);
+    addSubmitListener(form, onGetLink);
   } else {
     const messageElement = form.elements.namedItem('message');
     messageElement.readOnly = true;
@@ -255,9 +262,12 @@ async function main() {
     if (!location.hash.slice(1)) {
       form.querySelector('label[for=password]').textContent = 'Password';
       form.elements.namedItem('password').required = true;
+    } else {
+      form.querySelector('label[for=password]').hidden = true;
+      form.elements.namedItem('password').hidden = true;
     }
     form.querySelector('input[type=submit]').value = 'Get and Delete Message';
-    form.addEventListener('submit', onGetMessage);
+    addSubmitListener(form, onGetMessage);
   }
 }
 
@@ -287,9 +297,10 @@ html = <<-HTML
           <textarea id="message" rows="10" cols="50"
             maxlength="980" required></textarea>
         </p>
-        <label for="password">Password (optional)</label>
-        <input id="password" type="password" minlength="12">
-        <br><br>
+        <p>
+          <label for="password">Password (optional)</label>
+          <input id="password" type="password" minlength="12">
+        </p>
         <input type="submit" value="Get Link">
       </form>
       <p>Use plic to send a one-time secret message.</p>
