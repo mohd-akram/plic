@@ -31,13 +31,13 @@ end
 
 def not_found(context)
   context.response.status_code = 404
-  context.response.print "Not Found"
+  context.response.print "Not Found\n"
 end
 
 def not_allowed(context, allow)
   context.response.status_code = 405
   context.response.headers["Allow"] = allow
-  context.response.print "Method Not Allowed"
+  context.response.print "Method Not Allowed\n"
 end
 
 css = style <<-'CSS'
@@ -429,6 +429,13 @@ server = HTTP::Server.new do |context|
       else
         not_found context
       end
+    end
+  else
+    case path
+    when "/"
+      not_allowed context, "GET, POST"
+    else
+      not_allowed context, "GET, DELETE"
     end
   end
 end
