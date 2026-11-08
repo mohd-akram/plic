@@ -5,7 +5,7 @@ require "option_parser"
 
 require "sqlite3"
 
-def indent(string, space)
+def indent(string, space, &)
   string.each_line do |line|
     yield space unless line.empty?
     yield line
@@ -418,8 +418,7 @@ server = HTTP::Server.new do |context|
       DB.open db_url do |db|
         begin
           data = db.query_one \
-            "delete from envelopes where id = ? returning data", id,
-              &.read(Bytes)
+            "delete from envelopes where id = ? returning data", id, &.read(Bytes)
         rescue ex : DB::Error
         end
       end
@@ -441,7 +440,7 @@ server = HTTP::Server.new do |context|
 end
 
 DB.open db_url do |db|
-  db.exec (
+  db.exec(
     "create table if not exists envelopes (" \
     "  id text primary key," \
     "  data blob not null," \
